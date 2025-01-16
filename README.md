@@ -1,5 +1,5 @@
 # LiGAPU
-**Details and data will be made available after the paper is accepted.**<br>
+**Implementation details and pre-training models will be provided after the article has been accepted.**<br>
 The following environment is recommended :
 - Ubuntu: 20.04 
 - CUDA: 11.3 
