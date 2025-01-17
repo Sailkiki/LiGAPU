@@ -4,11 +4,11 @@ from glob import glob
 import os
 import open3d as o3d
 from models.utils import *
-from models.P2PNet import P2PNet
+from models.LiGAPU import LiGAPU
 from einops import rearrange
 from time import time
 from args.pu1k_args import parse_pu1k_args
-from args.pugan_args import parse_pugan_args
+# from args.pugan_args import parse_pugan_args
 from args.utils import str2bool
 from tqdm import tqdm
 import argparse
@@ -99,7 +99,7 @@ def test(args):
     model.eval()
 
     # test input data path list
-    test_input_path = glob(os.path.join(args.test_input_path, '*.ply'))
+    test_input_path = glob(os.path.join(args.test_input_path, '*.xyz'))
     # print(test_input_path)
     # conduct 4X twice to get 16X
     if args.up_rate == 16:
@@ -114,7 +114,7 @@ def test(args):
         os.makedirs(test_dir)
     logger = get_logger('test', test_dir)
 
-    # save upsampled point cloud
+
     pcd_dir = os.path.join(test_dir, args.save_dir)
     if not os.path.exists(pcd_dir):
         os.makedirs(pcd_dir)
@@ -198,12 +198,12 @@ def parse_test_args():
     parser = argparse.ArgumentParser(description='Test Arguments')
 
     parser.add_argument('--dataset', default='pu1k', type=str, help='pu1k or pugan')
-    parser.add_argument('--test_input_path', default='./data/LIULI/test/8192/input_8192/', type=str,
+    parser.add_argument('--test_input_path', default='/home/smz/Code/Grad-PU_ori/data/PU1K/test/input_2048/input_2048', type=str,
                         help='the test input data path')
-    parser.add_argument('--ckpt_path', default='./output/LIULI_SMOO/ckpt/ckpt-epoch-20.pth', type=str,
+    parser.add_argument('--ckpt_path', default='/home/smz/Code/Grad-PU_ori/output/1216/ckpt/ckpt-epoch-3.pth', type=str,
                         help='the pretrained model path')
     parser.add_argument('--save_dir', default='pcd', type=str, help='save upsampled point cloud')
-    parser.add_argument('--truncate_distance', default=True, type=str2bool, help='whether truncate distance')
+    parser.add_argument('--truncate_distance', default=False, type=str2bool, help='whether truncate distance')
     parser.add_argument('--up_rate', default=4, type=int, help='upsampling rate')
     parser.add_argument('--double_4X', default=False, type=str2bool, help='conduct 4X twice to get 16X')
 

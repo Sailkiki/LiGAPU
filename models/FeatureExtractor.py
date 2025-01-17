@@ -113,7 +113,11 @@ class DeltaNetSample(nn.Module):
         out = []
         for conv in self.convs:
             """
+<<<<<<< HEAD
+            The vector stream v does not participate in the output, but the v 
+=======
             Here, the vector stream v does not participate in the output, but the v 
+>>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
             obtained in the previous loop will be used as a parameter for the next loop,
             participating in the feature operation of the scalar stream x. So cannot 
             ignore v in the code.

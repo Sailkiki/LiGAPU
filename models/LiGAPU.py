@@ -7,9 +7,9 @@ from models.utils import get_knn_pts, index_points
 from scipy.spatial import cKDTree
 import torch.nn.functional as F
 
-class LiGAPUNet(nn.Module):
+class LiGAPU(nn.Module):
     def __init__(self, args):
-        super(LiGAPUNet, self).__init__()
+        super(LiGAPU, self).__init__()
         self.args = args
         self.feature_extractor = FeatureExtractor(args)
         self.csa_regressor = CSARegressor(args)
@@ -34,7 +34,6 @@ class LiGAPUNet(nn.Module):
         interpolated_feat = torch.sum(interpolated_feat, dim=-1)
         return interpolated_feat
 
-
     def regress_distance(self, original_pts, query_pts, global_feats, local_feats):
         device = original_pts.device
         global_feats = global_feats.to(device)
@@ -58,13 +57,13 @@ class LiGAPUNet(nn.Module):
         agg_feats = agg_feats.permute(0, 2, 1)
         agg_feats = F.adaptive_max_pool1d(agg_feats, output_size=query_pts.shape[-1])
         agg_feats = agg_feats.permute(0, 2, 1)
-        LiGAPU = self.csa_regressor(agg_feats)
-        return LiGAPU
+        p2p = self.csa_regressor(agg_feats)
+        return p2p
 
     def forward(self, original_pts, query_pts):
         global_feats, local_feats = self.extract_feature(original_pts)
-        LiGAPU = self.regress_distance(original_pts, query_pts, global_feats, local_feats)
-        return LiGAPU
+        p2p = self.regress_distance(original_pts, query_pts, global_feats, local_feats)
+        return p2p
 
 def compute_radius_adj_matrix(points, radius):
     points_np = points.detach().cpu().numpy()

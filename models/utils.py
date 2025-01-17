@@ -10,11 +10,19 @@ from torch.autograd import grad
 from einops import rearrange, repeat
 from sklearn.neighbors import NearestNeighbors
 from models.Chamfer3D.dist_chamfer_3D import chamfer_3DDist
+<<<<<<< HEAD
+import torch.nn.functional as F
+from einops import repeat, rearrange
+
+chamfer_dist = chamfer_3DDist()
+
+=======
 
 chamfer_dist = chamfer_3DDist()
 
 
 
+>>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
 def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
@@ -45,7 +53,10 @@ def index_points(pts, idx):
 
     return res
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
 def FPS(pts, fps_pts_num):
     # input: (b, 3, n)
 
@@ -66,10 +77,16 @@ def get_knn_pts(k, pts, center_pts, return_idx=False):
     pts_trans = rearrange(pts, 'b c n -> b n c').contiguous()
     # (b, m, 3)
     center_pts_trans = rearrange(center_pts, 'b c m -> b m c').contiguous()
+<<<<<<< HEAD
+    # (b, m, k)
+    knn_idx = pointops.knnquery_heap(k, pts_trans, center_pts_trans).long()
+    # (b, 3, m, k)
+=======
     # (b, m, k) , 作用是为 center_pts_trans 找到在  pts_trans 中的最临近 k 个点索引
     knn_idx = pointops.knnquery_heap(k, pts_trans, center_pts_trans).long()
     # (b, 3, m, k)
     # b 批次 3 通道特征 每个批次m个点 每个点 k 个邻近点
+>>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
     knn_pts = index_points(pts, knn_idx)
 
     if return_idx == False:
@@ -81,7 +98,11 @@ def get_knn_pts(k, pts, center_pts, return_idx=False):
 def midpoint_interpolate(args, sparse_pts):
     pts_num = sparse_pts.shape[-1] # 256
     up_pts_num = int(pts_num * args.up_rate) # 1024
+<<<<<<< HEAD
+    k = int(2 * args.up_rate) #
+=======
     k = int(2 * args.up_rate) # 默认是 2 * 4 = 8
+>>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
     knn_pts = get_knn_pts(k, sparse_pts, sparse_pts)
     repeat_pts = repeat(sparse_pts, 'b c n -> b c n k', k=k)
     mid_pts = (knn_pts + repeat_pts) / 2.0
@@ -90,6 +111,16 @@ def midpoint_interpolate(args, sparse_pts):
     interpolated_pts = FPS(interpolated_pts, up_pts_num)
     return interpolated_pts
 
+<<<<<<< HEAD
+def get_combined_loss(args, pred_p2p, sample_pts, gt_pts, alpha=0.6, beta=0.4):
+    knn_pts = get_knn_pts(1, gt_pts, sample_pts).squeeze(-1)
+    gt_p2p = torch.norm(knn_pts - sample_pts, p=2, dim=1, keepdim=True)  # (b, 1, n)
+    p2p_loss = torch.nn.L1Loss(reduction='none')(pred_p2p, gt_p2p)  # (b, 1, n)
+    p2p_loss = p2p_loss.squeeze(1).sum(dim=-1).mean()  # (b, n) -> (b) -> scalar
+    dist1, _ = get_knn_pts(1, gt_pts, sample_pts, return_idx=True)
+    dist1 = dist1.squeeze(-1)
+    dist2, _ = get_knn_pts(1, sample_pts, gt_pts, return_idx=True)  #
+=======
 
 
 
@@ -106,6 +137,7 @@ def get_combined_loss(args, pred_p2p, sample_pts, gt_pts, alpha=0.6, beta=0.4):
     dist1, _ = get_knn_pts(1, gt_pts, sample_pts, return_idx=True)  # sample_pts 到 gt_pts 的距离 (b, n, 1)
     dist1 = dist1.squeeze(-1)
     dist2, _ = get_knn_pts(1, sample_pts, gt_pts, return_idx=True)  # gt_pts 到 sample_pts 的距离 (b, n, 1)
+>>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
     dist2 = dist2.squeeze(-1)
     if args.truncate_distance:
         dist1 = torch.clamp(dist1, max=args.max_dist)
@@ -114,6 +146,19 @@ def get_combined_loss(args, pred_p2p, sample_pts, gt_pts, alpha=0.6, beta=0.4):
     total_loss = alpha * p2p_loss + beta * chamfer_loss
     return total_loss
 
+<<<<<<< HEAD
+# Local Geometric Integrity Loss
+def local_geometric_integrity_loss(args, pred_p2p, sample_pts, gt_pts):
+    # input: (b, c, n)
+    knn_pts = get_knn_pts(args.k, gt_pts, sample_pts)
+    closest_knn_pts = knn_pts[..., 0]
+    gt_p2p = torch.norm(closest_knn_pts - sample_pts, p=2, dim=1, keepdim=True)
+    for i in range(1, args.k):
+        knn_distance = torch.norm(knn_pts[..., i] - sample_pts, p=2, dim=1, keepdim=True)
+        gt_p2p += knn_distance
+
+    gt_p2p /= args.k
+=======
 
 
 def get_p2p_loss(args, pred_p2p, sample_pts, gt_pts):
@@ -172,6 +217,7 @@ def local_geometric_integrity_loss(args, pred_p2p, sample_pts, gt_pts):
         gt_p2p += knn_distance  # 将每个邻域点的距离累加（拓扑约束）
 
     gt_p2p /= args.k  # 取平均，使得损失值合理化
+>>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
 
     # (b, 1, n)
     if args.use_smooth_loss == True:
@@ -214,14 +260,20 @@ def normalize_point_cloud(input, centroid=None, furthest_distance=None):
 
 def add_noise(pts, sigma, clamp):
     # input: (b, 3, n)
+<<<<<<< HEAD
+=======
 
+>>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
     assert (clamp > 0)
     jittered_data = torch.clamp(sigma * torch.randn_like(pts), -1 * clamp, clamp).cuda()
     jittered_data += pts
 
     return jittered_data
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
 # generate patch for test
 def extract_knn_patch(k, pts, center_pts):
     # input : (b, 3, n)
@@ -244,7 +296,10 @@ def extract_knn_patch(k, pts, center_pts):
 
     return patches
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
 def get_logger(name, log_dir):
     # 创建一个名为name的日志记录器
     logger = logging.getLogger(name)
@@ -266,17 +321,25 @@ def get_logger(name, log_dir):
 
     return logger
 
+<<<<<<< HEAD
+def get_query_points(input_pts, args):
+    query_pts = input_pts + (torch.randn_like(input_pts) * args.local_sigma)
+=======
 
 def get_query_points(input_pts, args):
     # 添加随机扰动
     query_pts = input_pts + (torch.randn_like(input_pts) * args.local_sigma)
 
+>>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
     return query_pts
 
 
 def reset_model_args(train_args, model_args):
     for arg in vars(train_args):
+<<<<<<< HEAD
+=======
         #把train_args中的所有属性复制到model_args中  arg相当于键 getatter获取对应的值
+>>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
         setattr(model_args, arg, getattr(train_args, arg))
 
 
