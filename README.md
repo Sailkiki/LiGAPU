@@ -1,5 +1,5 @@
 # LiGAPU
-**Due to time constraints, we will provide detailed information on code deployment, pre-trained models, and data set preparation methods upon acceptance of the paper.**<br>
+**Due to time constraints, we have not yet organized the code. We will provide detailed code deployment instructions, pre-trained models, and dataset preparation methods upon acceptance of the paper.**<br>
 The following environment is recommended :
 - Ubuntu: 20.04 
 - CUDA: 11.3 
