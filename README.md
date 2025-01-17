@@ -1,11 +1,12 @@
 # LiGAPU
-**Implementation details and pre-training models will be provided after the article has been accepted.**<br>
+**Due to time constraints, we will provide detailed information on code deployment, pre-trained models, and data set preparation methods upon acceptance of the paper.**<br>
 The following environment is recommended :
 - Ubuntu: 20.04 
 - CUDA: 11.3 
 - PyTorch: 1.10.0 
 - python: 3.7.5 
 
+## Acknowledgements
 Our code was created based on [Grad-PU](https://github.com/yunhe20/Grad-PU) and [DeltaConv](https://github.com/rubenwiersma/deltaconv), thanks to their excellent work.
 
 Grad-PU: [Grad-PU: Arbitrary-Scale Point Cloud Upsampling via Gradient Descent with Learned Distance Functions](https://arxiv.org/abs/2304.11846)<br>
