@@ -55,7 +55,7 @@ class LiGAPU(nn.Module):
         agg_local_feats_resized = F.interpolate(agg_local_feats, size=query_pts.shape[-1], mode='linear', align_corners=False)
         agg_feats = torch.cat((query_pts, agg_local_feats_resized, global_feats), dim=1)
         agg_feats = agg_feats.permute(0, 2, 1)
-        agg_feats = F.adaptive_max_pool1d(agg_feats, output_size=query_pts.shape[-1])
+        agg_feats = F.adaptive_max_pool1d(agg_feats, output_size=int(query_pts.shape[-1] / agg_feats.shape[0] * 10 - 4))
         agg_feats = agg_feats.permute(0, 2, 1)
         p2p = self.csa_regressor(agg_feats)
         return p2p
