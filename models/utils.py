@@ -183,22 +183,6 @@ def get_p2p_loss(args, pred_p2p, sample_pts, gt_pts):
     return loss
 
 
-
-    # if args.use_smooth_loss == True:
-    #     if args.truncate_distance == True:
-    #         loss = torch.nn.SmoothL1Loss(reduction='none', beta=args.beta)(torch.clamp(pred_p2p, max=args.max_dist), torch.clamp(gt_p2p, max=args.max_dist))
-    #     else:
-    #         loss = torch.nn.SmoothL1Loss(reduction='none', beta=args.beta)(pred_p2p, gt_p2p)
-    # else:
-    #     if args.truncate_distance == True:
-    #         loss = torch.nn.L1Loss(reduction='none')(torch.clamp(pred_p2p, max=args.max_dist), torch.clamp(gt_p2p, max=args.max_dist))
-    #     else:
-
-
-
-
-
-
 # Local Geometric Integrity Loss
 def local_geometric_integrity_loss(args, pred_p2p, sample_pts, gt_pts):
     # input: (b, c, n)
@@ -339,8 +323,55 @@ def reset_model_args(train_args, model_args):
 <<<<<<< HEAD
 =======
         #把train_args中的所有属性复制到model_args中  arg相当于键 getatter获取对应的值
->>>>>>> e0abcb023347bbdfe55e132c642981932b703c97
         setattr(model_args, arg, getattr(train_args, arg))
 
+def voxel_downsample(points, voxel_size):
+    if len(points.shape) == 3:
+        batch_mode = True
+        b, c, n = points.shape
+        points_list = []
+        for i in range(b):
+            points_batch = points[i].transpose(0, 1).contiguous()  # (n, 3)
+            points_list.append(points_batch)
+    else:
+        batch_mode = False
+        points_list = [points]
+    
+    results = []
+    
+    for pts in points_list:
+        min_bound = torch.min(pts, dim=0)[0]
+        
+        voxel_indices = ((pts - min_bound) / voxel_size).int()
+        
+        voxel_dict = {}
+        for i, idx in enumerate(voxel_indices):
+            idx_tuple = tuple(idx.cpu().numpy())
+            if idx_tuple in voxel_dict:
+                voxel_dict[idx_tuple].append(i)
+            else:
+                voxel_dict[idx_tuple] = [i]
+        
+        sampled_points = []
+        for voxel_idx, point_indices in voxel_dict.items():
 
+            voxel_center = (torch.tensor(voxel_idx).float() + 0.5) * voxel_size + min_bound
+            
+            voxel_points = pts[point_indices]
+            distances = torch.sum((voxel_points - voxel_center) ** 2, dim=1)
+            min_dist_idx = torch.argmin(distances)
+            sampled_points.append(pts[point_indices[min_dist_idx]])
+        
+        if sampled_points:
+            sampled_points = torch.stack(sampled_points)
+            
+        results.append(sampled_points)
+    
+    if batch_mode:
+        batch_results = []
+        for res in results:
+            batch_results.append(res.transpose(0, 1).contiguous())  # (3, m)
+        return batch_results
+    else:
+        return results[0]
 
