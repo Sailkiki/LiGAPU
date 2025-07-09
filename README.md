@@ -1,3 +1,5 @@
+## Implementation Details and Code Usage Instructions
+👉 Due to ongoing commitments, the detailed configuration and usage instructions will be released within the next three months.
 ## Acknowledgements
 Our code was created based on [Grad-PU](https://github.com/yunhe20/Grad-PU) and [DeltaConv](https://github.com/rubenwiersma/deltaconv), thanks to their excellent work.
 
