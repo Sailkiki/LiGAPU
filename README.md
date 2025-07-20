@@ -1,5 +1,5 @@
 ## Implementation Details and Code Usage Instructions
-👉 **Due to time constraints, we will release the complete code within three months.**
+👉 **Due to time constraints, the complete deployment information will be made available within three months.**
 ## Acknowledgements
 Our code was created based on [Grad-PU](https://github.com/yunhe20/Grad-PU) and [DeltaConv](https://github.com/rubenwiersma/deltaconv), thanks to their excellent work.
 
