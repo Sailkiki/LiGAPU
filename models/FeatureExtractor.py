@@ -6,10 +6,13 @@ from einops import repeat, rearrange
 from models.pointops.functions import pointops
 from torch_geometric.nn import knn_graph
 from .deltatools.geometry.grad_div_mls import build_grad_div, build_tangent_basis, estimate_basis
+from sklearn.neighbors import NearestNeighbors
 import torch.nn.functional as F
+from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import scatter
 from torch_geometric.nn import global_mean_pool, global_add_pool
 from torch_scatter import scatter
+from .deltatools.geometry.operators import curl, norm, I_J, laplacian, hodge_laplacian
 
 
 class SEBlock(nn.Module):
@@ -263,6 +266,42 @@ class SelfAttention(nn.Module):
         out = torch.matmul(attn_weights, V).transpose(1, 2).contiguous().view(batch_size, seq_len, -1)
         out = self.out_proj(out)
         return out
+
+class MultiChannelGLU(nn.Module):
+    def __init__(self, in_channels, out_channels, num_channels, activations=None, learnable_gate=True,
+                 gating_factor=1.0):
+        super(MultiChannelGLU, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.num_channels = num_channels
+        self.learnable_gate = learnable_gate
+        self.gating_factor = gating_factor
+        self.linear_a = nn.ModuleList([nn.Linear(in_channels, out_channels) for _ in range(num_channels)])
+        self.linear_b = nn.ModuleList([nn.Linear(in_channels, out_channels) for _ in range(num_channels)])
+        if learnable_gate:
+            self.gate_weight = nn.Parameter(torch.ones(num_channels, out_channels))
+        if activations is None:
+            activations = ['sigmoid'] * num_channels
+        self.activations = activations
+
+    def forward(self, x):
+        outputs = []
+        for i in range(self.num_channels):
+            a = self.linear_a[i](x)
+            b = self.linear_b[i](x)
+            if self.learnable_gate:
+                b = b * self.gate_weight[i]
+            if self.activations[i] == 'sigmoid':
+                b = torch.sigmoid(b)
+            elif self.activations[i] == 'tanh':
+                b = torch.tanh(b)
+            elif self.activations[i] == 'relu':
+                b = torch.relu(b)
+            else:
+                raise ValueError(f"Unsupported activation function: {self.activations[i]}")
+            outputs.append(a * b * self.gating_factor)
+        output = torch.stack(outputs, dim=1).mean(dim=1)
+        return output
 
 class DGAConv(nn.Module):
     def __init__(self, in_channels, out_channels, depth=1, centralized=False, vector=True, aggr='max',
