@@ -1,3 +1,5 @@
+## LiGAPUv2 is coming soon
+We are currently organizing the codebase and further optimizing the network architecture and computational efficiency. The updated version is expected to be released in the near future.
 ## Environment Setup
 python==3.7.5<br>
 pytorch==1.10.0<br>
